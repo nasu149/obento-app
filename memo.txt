@@ -1,0 +1,100 @@
+● React
+podman run --rm -p 3000:3000 -p 5000:5000 -p 4400:4400 -p 9005:9005 --name test -it -v .:/usr/src/app:Z vite-app:1 bash
+
+npm create vite@latest react-obento -- --template react-ts
+cd react-obento/
+
+package.json
+"dev": "vite --host 0.0.0.0 --port 3000",
+
+
+https://tailwindcss.com/docs/installation/using-vite
+npm install tailwindcss @tailwindcss/vite postcss autoprefixer
+
+
+-------[vite.config.ts]--------
+import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [tailwindcss(), react()],
+})
+--------------------------------
+
+----[App.css]----
+@import "tailwindcss";
+-----------------
+
+npm run dev
+
+
+
+
+
+● quarkus
+export GROUPID=com.marcha
+export AETIFACTID=total-sse-service
+export VERSION=1.0.0
+
+quarkus create app  -P io.quarkus.platform:quarkus-bom:3.21.0 ${GROUPID}:${AETIFACTID}:${VERSION}
+cd ${AETIFACTID}
+quarkus extension add rest-jackson, messaging-kafka, quarkus-smallrye-openapi
+# quarkus extension add rest-jackson, hibernate-orm-panache, jdbc-postgresql, flyway, messaging-kafka, quarkus-smallrye-openapi
+
+
+
+
+# POST
+curl -X POST http://localhost:8080/records \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "user123", "date": "2025-04-16", "who": "self"}'
+
+# GET
+curl http://localhost:8080/records
+
+
+● postgresql
+podman run --name postgres \
+           -e POSTGRES_PASSWORD=postgres \
+           -v /root/works/microservices/obento-app/postgresdb:/var/lib/postgresql/data:Z \
+           -p 5432:5432 \
+           -d docker.io/library/postgres:13.20
+podman exec -it postgres bash
+psql -U postgres
+
+
+podman run --name postgres-allowance \
+           -e POSTGRES_PASSWORD=postgres \
+           -v /root/works/microservices/obento-app/postgresdb-allowance:/var/lib/postgresql/data:Z \
+           -p 5433:5432 \
+           -d docker.io/library/postgres:13.20
+
+
+● kafka
+https://ja.quarkus.io/guides/kafka-getting-started
+cd /root/works/microservices/obento-app/kafka
+podman-compose -f docker-compose.yaml up -d 
+
+
+● Keycloak
+podman run -p 8180:8080 --env KC_FEATURES=declarative-user-profile --env KEYCLOAK_ADMIN=admin --env KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:23.0 start-dev
+
+● accessToken 取得方法
+export access_token=$(\
+    curl --insecure -X POST http://localhost:8180/realms/quarkus/protocol/openid-connect/token \
+    --user backend-service:secret \
+    -H 'content-type: application/x-www-form-urlencoded' \
+    -d 'username=alice&password=alice&grant_type=password' | jq --raw-output '.access_token' \
+ )
+
+● curl with accessToken
+ curl -v -X GET \
+  http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer "$access_token
+
+
+
+
+
