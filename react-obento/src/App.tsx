@@ -1,16 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Home from './Home'
 import Calendar from './Calendar'
+// import { BentoViewer } from './components/BentoViewer'
 
 function App() {
-  const [count, setCount] = useState(0)
+  // const today: Date = new Date();
+  // const todayString: string = today.toLocaleDateString('sv-SE');
+  const userId = "string18";
 
   return (
     <>
-      <Home />
+      {/* <BentoViewer userId={userId} date={todayString} /> */}
+      <Home userId={userId} />
       <Calendar />
     </>
   )

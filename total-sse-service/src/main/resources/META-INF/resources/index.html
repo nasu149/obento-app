@@ -34,6 +34,7 @@
     var source = new EventSource("/total");
     source.onmessage = (event) => {
         console.log(event.data)
+        return event.data;
     //   var json = JSON.parse(event.data);
     //   $(`#${json.id}`).html((index, html) => {
     //     return html.replace("Pending", `\$\xA0${json.price}`);

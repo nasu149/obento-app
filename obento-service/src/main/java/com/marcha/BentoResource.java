@@ -14,11 +14,13 @@ import com.marcha.entity.BentoRecord;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.reactive.messaging.kafka.transactions.KafkaTransactions;
+import io.smallrye.reactive.messaging.kafka.transactions.TransactionalEmitter;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
+// import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -37,10 +39,31 @@ public class BentoResource {
 
     Logger logger = Logger.getLogger(getClass());
 
+    // @GET
+    // public List<BentoRecord> getAll() {
+    //     // 本来は userId を取得して filter する（後でKeycloak対応）
+    //     return BentoRecord.listAll();
+    // }
+
     @GET
-    public List<BentoRecord> getAll() {
-        // 本来は userId を取得して filter する（後でKeycloak対応）
-        return BentoRecord.listAll();
+    @Path("/{userId}")
+    public List<BentoRecord> getRecordByUserId(@PathParam("userId") String userId) {
+        logger.debug("list stared userId = " + userId);
+        List<BentoRecord> records = BentoRecord.list("userId = ?1", userId);
+        return records;
+    }
+
+    @GET
+    @Path("/{userId}/{date}")
+    public BentoRecord getRecordByUserIdDate(@PathParam("userId") String userId, @PathParam("date") String date) {
+        logger.debug("list stared {userId, date} = " + userId + ", " + date);
+
+        LocalDate localDate =  LocalDate.parse(date);
+        BentoRecord record = BentoRecord.find("userId = ?1 and date = ?2", userId, localDate).firstResult();
+        if (record == null) {
+            throw new NotFoundException("userid or date is invalid");
+        }
+        return record;
     }
 
     @POST
@@ -48,20 +71,25 @@ public class BentoResource {
     public BentoRecord create(BentoRecord record) {
         BentoRecord bentoRecord =
             kafkaTx.withTransaction(emitter -> {
-                logger.debug("BentoRecord create start! record = " + record);
-                record.persist();
-                logger.debug("BentoRecord create persist end = " + record);
 
-                BentoEvent bentoEvent = Record2EventPojo.record2EventPojo(record, BentoEvent.EventType.CREATED);
-                logger.debug("BentoRecord create record2Event = " + bentoEvent);
-
-                emitter.send(bentoEvent);
-                logger.debug("BentoRecord create sendBentoEvent OK " + bentoEvent);
+                createTx(record, emitter);
 
                 return Uni.createFrom().item(record);
             }).await().indefinitely();
 
             return bentoRecord;
+    }
+
+    private void createTx(BentoRecord record, TransactionalEmitter<BentoEvent> emitter){
+        logger.debug("BentoRecord create start! record = " + record);
+        record.persist();
+        logger.debug("BentoRecord create persist end = " + record);
+
+        BentoEvent bentoEvent = Record2EventPojo.record2EventPojo(record, BentoEvent.EventType.CREATED);
+        logger.debug("BentoRecord create record2Event = " + bentoEvent);
+
+        emitter.send(bentoEvent);
+        logger.debug("BentoRecord create sendBentoEvent OK " + bentoEvent);
     }
 
     @PUT
@@ -77,12 +105,14 @@ public class BentoResource {
 
                 if (record == null) {
                     logger.debug("BentoRecord update: 404 = " + record);
-                    throw new NotFoundException();
+                    createTx(update, emitter);
+                    record = update;
+                    // throw new NotFoundException();
+                } else {
+                    logger.debug("BentoRecord update: not 404 = " + record);
+                    record.who = update.who;
+                    logger.debug("BentoRecord update: update OK new record = " + record);
                 }
-                logger.debug("BentoRecord update: not 404 = " + record);
-                
-                record.who = update.who;
-                logger.debug("BentoRecord update: update OK new record = " + record);
                 
                 // bentEvent を allwance にメッセージングを飛ばす
                 BentoEvent bentoEvent = Record2EventPojo.record2EventPojo(record, BentoEvent.EventType.UPDATED);

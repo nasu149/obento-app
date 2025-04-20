@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "/root/works/microservices/obento-app/react-obento"
+		},
+		{
+			"path": "/root/works/microservices/obento-app/obento-service"
+		},
+		{
+			"path": "/root/works/microservices/obento-app/allowance-service"
+		},
+		{
+			"path": "/root/works/microservices/obento-app/total-sse-service"
+		},
+		{
+			"path": "/root/works/microservices/obento-app/kafka"
+		},
+		{
+			"path": "/root/works/microservices/obento-app/memo"
+		}
+	],
+	"settings": {
+		"typescript.tsdk": "node_modules/typescript/lib"
+	}
+}

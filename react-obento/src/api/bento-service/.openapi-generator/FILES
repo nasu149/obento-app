@@ -1,0 +1,9 @@
+.openapi-generator-ignore
+apis/BentoResourceApi.ts
+apis/GreetingResourceApi.ts
+apis/index.ts
+index.ts
+models/BentoRecord.ts
+models/Who.ts
+models/index.ts
+runtime.ts
