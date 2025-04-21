@@ -50,6 +50,7 @@ public class BentoResource {
     public List<BentoRecord> getRecordByUserId(@PathParam("userId") String userId) {
         logger.debug("list stared userId = " + userId);
         List<BentoRecord> records = BentoRecord.list("userId = ?1", userId);
+        logger.debug("list userId records  = " + records);
         return records;
     }
 
@@ -105,6 +106,7 @@ public class BentoResource {
 
                 if (record == null) {
                     logger.debug("BentoRecord update: 404 = " + record);
+                    update.date = LocalDate.parse(date);
                     createTx(update, emitter);
                     record = update;
                     // throw new NotFoundException();

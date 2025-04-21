@@ -54,6 +54,7 @@ const Home = ({ userId }: Props) => {
     try {
       const today = new Date();
       const todayWho: Who = who;
+      console.log("today = ", today);
       const bentoRecord: BentoRecord = {userId: userId, date: today, who: todayWho}
       console.log("today.toLocaleDateString()", today.toLocaleDateString('sv-SE'));
 
